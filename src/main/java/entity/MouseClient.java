@@ -2,10 +2,13 @@ package entity;
 
 public class MouseClient {
     public static void main(String[] args) {
-        Mouse mouse1 = new Mouse("METOO",false);
-        mouse1.setDpi(100);
-        mouse1.setHeight(5);
-        mouse1.setWeight(2);
+        Mouse mouse1 = Mouse.builder("METO",false)
+                .dpi(400)
+                .build();
+
+        Mouse mouse2 = Mouse.builder("ASUS-PI",true)
+                .height(2)
+                .build();
 
 
 
