@@ -1,18 +1,12 @@
-public class Airplane {
-    public String model;
-    private String engineSerial;
+public class Airplane implements Cloneable{
+    public final String model;
+    private final String engineSerial;
     private Integer flightHours;
 
     public Airplane(String model, int year) {
         this.model = model;
         this.engineSerial = "ENG-"+year;
         this.flightHours = 0;
-    }
-
-    public Airplane(Airplane others) {
-        this.model = others.model;
-        this.engineSerial = others.engineSerial;
-        this.flightHours = others.flightHours;
     }
 
     public void fly(int hours) {
@@ -28,4 +22,14 @@ public class Airplane {
                 '}';
     }
 
+    @Override
+    public Airplane clone() {
+
+        try {
+            return (Airplane) super.clone();
+        } catch (CloneNotSupportedException ex) {
+            throw new AssertionError();
+        }
+
+    }
 }

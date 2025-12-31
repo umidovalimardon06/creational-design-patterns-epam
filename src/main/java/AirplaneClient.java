@@ -4,7 +4,7 @@ public class AirplaneClient {
         original.fly(150);
 
         System.out.println("Original: "+original.getInfo());
-        Airplane copy = new Airplane(original);
+        Airplane copy = original.clone();
 
         System.out.println("Copy: "+copy.getInfo());
 
