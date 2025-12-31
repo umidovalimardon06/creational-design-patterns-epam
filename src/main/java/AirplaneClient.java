@@ -4,9 +4,7 @@ public class AirplaneClient {
         original.fly(150);
 
         System.out.println("Original: "+original.getInfo());
-
-        Airplane copy = new Airplane("Cessna 172",2020);
-        copy.model = original.model;
+        Airplane copy = new Airplane(original);
 
         System.out.println("Copy: "+copy.getInfo());
 

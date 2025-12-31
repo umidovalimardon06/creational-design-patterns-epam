@@ -9,6 +9,12 @@ public class Airplane {
         this.flightHours = 0;
     }
 
+    public Airplane(Airplane others) {
+        this.model = others.model;
+        this.engineSerial = others.engineSerial;
+        this.flightHours = others.flightHours;
+    }
+
     public void fly(int hours) {
         this.flightHours = hours;
     }
