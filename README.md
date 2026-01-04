@@ -1,114 +1,193 @@
-# MessageApp – Design Problem Documentation
+# MessageApp – Factory Pattern Solution Documentation
 
-## 1. Overview
+## 1. Objective
 
-The `MessageApp` class is responsible for sending messages through multiple communication channels such as **Email**, **SMS**, **Telegram**, and **WhatsApp**.
+The goal of this solution is to refactor the original `MessageApp` implementation to:
 
-In the current implementation, the message-sending logic is handled using a `switch` statement that directly creates instances of concrete service classes and invokes their `send()` methods.
+* Eliminate tight coupling
+* Follow **SOLID principles**
+* Improve scalability and maintainability
 
-Although the implementation works correctly from a functional perspective, it introduces several **design issues** that negatively impact scalability, maintainability, and adherence to object-oriented design principles.
-
----
-
-## 2. Identified Design Problems
-
-### 2.1 Tight Coupling
-
-**Description:**
-The `MessageApp` class is tightly coupled with concrete implementations such as `EmailService`, `SmsService`, `TelegramService`, and `WhatsAppService`.
-
-**Why this is a problem:**
-
-* Any change in a service class (constructor, behavior, dependencies) may require changes in `MessageApp`.
-* Makes unit testing difficult because services cannot be easily mocked or replaced.
-
-**Impact:**
-
-* Reduced flexibility
-* Poor testability
+This is achieved by introducing the **Factory Design Pattern** and a common abstraction for message services.
 
 ---
 
-### 2.2 Violation of Single Responsibility Principle (SRP)
+## 2. High-Level Design Overview
 
-**Description:**
-According to the Single Responsibility Principle, a class should have only one reason to change. However, `MessageApp`:
+The refactored design separates responsibilities across multiple layers:
 
-* Decides *which* message service to use
-* Creates the service instance
-* Executes the message sending
-
-**Why this is a problem:**
-
-* Business logic and object creation logic are mixed together
-* Changes in message selection logic or service creation logic both affect the same class
-
-**Impact:**
-
-* Increased complexity
-* Harder to maintain and extend
+* **Message (Interface):** Defines a common contract for all message types
+* **Concrete Message Classes:** Implement the `Message` interface (`EmailMessage`, `SmsMessage`, etc.)
+* **MessageFactory:** Encapsulates object creation logic
+* **MessageApp:** Acts as the client and uses the factory without knowing concrete implementations
 
 ---
 
-### 2.3 Violation of Open/Closed Principle (OCP)
+## 3. Package Structure
 
-**Description:**
-The Open/Closed Principle states that software entities should be **open for extension but closed for modification**.
+```
+java
+ ├── factory
+ │    └── MessageFactory
+ │
+ ├── message
+ │    ├── Message        (interface)
+ │    ├── EmailMessage   (implementation)
+ │    ├── SmsMessage     (implementation)
+ │
+ └── MessageApp
+```
 
-In the current design:
-
-* Adding a new messaging service (e.g., `SlackService`) requires modifying the `switch` statement in `MessageApp`.
-
-**Why this is a problem:**
-
-* Existing code must be changed for every new feature
-* Higher risk of introducing bugs into already working code
-
-**Impact:**
-
-* Poor scalability
-* Frequent code modifications
+This structure ensures clear separation of concerns and improves code organization.
 
 ---
 
-### 2.4 Conditional Complexity
+## 4. Component Responsibilities
 
-**Description:**
-As more message types are added, the `switch` or `if-else` structure grows.
+### 4.1 Message Interface
 
-**Why this is a problem:**
+**Responsibility:**
 
-* Code becomes harder to read and maintain
-* Increased chance of logical errors
+* Defines a common contract for all message types
 
-**Impact:**
+**Benefit:**
 
-* Reduced readability
-* Increased maintenance cost
+* Enables polymorphism
+* Allows the application to work with abstractions instead of concrete classes
 
 ---
 
-## 3. Summary of Issues
+### 4.2 Concrete Message Implementations
 
-| Problem Area   | Description                                      |
-| -------------- | ------------------------------------------------ |
-| Tight Coupling | Direct dependency on concrete service classes    |
-| SRP Violation  | Multiple responsibilities in `MessageApp`        |
-| OCP Violation  | Modification required for every new message type |
-| Scalability    | Conditional logic grows with new services        |
+Examples:
 
----
+* `EmailMessage`
+* `SmsMessage`
 
-## 4. Conclusion
+**Responsibility:**
 
-While the current implementation is simple and functional, it does not follow clean architecture or SOLID principles. As the system grows, this design will lead to:
+* Implement the `send()` behavior specific to each message type
 
-* Increased maintenance effort
-* Reduced flexibility
-* Higher risk of defects
+**Benefit:**
 
-A refactoring using **abstraction (interfaces)** and **design patterns** (such as Factory or Strategy) would significantly improve the design and make the system more extensible and maintainable.
+* Each class has a single responsibility
+* Easy to add or modify message behavior independently
 
 ---
 
-**Note:** This documentation focuses only on identifying and explaining the design problems. Proposed solutions and refactored designs should be documented separately.
+### 4.3 MessageFactory
+
+```java
+public class MessageFactory {
+    public static Message createMessage(String type) {
+        if (type.equals("EMAIL")) {
+            return new EmailMessage();
+        } else if (type.equals("SMS")) {
+            return new SmsMessage();
+        }
+        return null;
+    }
+}
+```
+
+**Responsibility:**
+
+* Centralizes object creation logic
+* Decides which concrete `Message` implementation to instantiate
+
+**Benefit:**
+
+* Removes object creation logic from `MessageApp`
+* Improves maintainability and readability
+
+---
+
+### 4.4 MessageApp (Client)
+
+```java
+Message email = MessageFactory.createMessage("EMAIL");
+email.send();
+```
+
+**Responsibility:**
+
+* Uses the factory to obtain a `Message`
+* Executes behavior without knowing implementation details
+
+**Benefit:**
+
+* Loosely coupled to concrete classes
+* Easy to test and extend
+
+---
+
+## 5. SOLID Principles Applied
+
+### 5.1 Single Responsibility Principle (SRP)
+
+* `MessageApp` → Application flow only
+* `MessageFactory` → Object creation only
+* Message classes → Message sending logic only
+
+✔ Each class has one clear responsibility
+
+---
+
+### 5.2 Open/Closed Principle (OCP)
+
+* New message types (e.g., `TelegramMessage`) can be added
+* Existing client code (`MessageApp`) remains unchanged
+
+✔ System is open for extension, closed for modification (client side)
+
+---
+
+### 5.3 Dependency Inversion Principle (DIP)
+
+* `MessageApp` depends on the `Message` abstraction, not concrete implementations
+
+✔ High-level modules depend on abstractions
+
+---
+
+## 6. Improvements Over Original Design
+
+| Aspect           | Before               | After                  |
+| ---------------- | -------------------- | ---------------------- |
+| Coupling         | Tight                | Loose                  |
+| SOLID Compliance | Violated             | Followed               |
+| Object Creation  | In client            | Centralized in factory |
+| Scalability      | Poor                 | Improved               |
+| Readability      | Complex conditionals | Clean and structured   |
+
+---
+
+## 7. Limitations & Future Enhancements
+
+### Current Limitation
+
+* `MessageFactory` still uses conditional logic (`if-else`)
+
+### Possible Enhancements
+
+* Replace conditionals with:
+
+    * Enum-based factory
+    * Map-based registry
+    * Dependency Injection (Spring)
+
+---
+
+## 8. Conclusion
+
+This refactored solution successfully addresses the design issues in the original implementation by:
+
+* Applying the **Factory Design Pattern**
+* Following **SOLID principles**
+* Improving code maintainability and scalability
+
+The system is now easier to extend, test, and maintain while keeping the client code clean and decoupled.
+
+---
+
+**Design Pattern Used:** Factory Pattern
